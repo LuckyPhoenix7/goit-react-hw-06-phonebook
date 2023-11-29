@@ -6,8 +6,10 @@ import {
   StyledField,
   StyledForm,
 } from './ContactForm.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
 
-export const ContactForm = ({ addContact }) => {
+export const ContactForm = () => {
   const schema = Yup.object().shape({
     name: Yup.string()
       .min(5, 'Должно быть от 5 букв!')
@@ -17,6 +19,9 @@ export const ContactForm = ({ addContact }) => {
       .min(6, 'Должно быть от 6 цифр!'),
   });
 
+  const visibleContact = useSelector(state => state.contacts.contacts);
+  const dispatch = useDispatch();
+
   return (
     <Formik
       initialValues={{
@@ -25,8 +30,15 @@ export const ContactForm = ({ addContact }) => {
       }}
       validationSchema={schema}
       onSubmit={(values, actions) => {
-        addContact(values);
-        actions.resetForm();
+        const isContacts = visibleContact.some(
+          ({ name }) => name.toLowerCase() === values.name.toLowerCase()
+        );
+        if (isContacts) {
+          alert(`Контакт ${values.name} уже существует!`);
+        } else {
+          dispatch(addContact(values.name, values.number));
+          actions.resetForm();
+        }
       }}
     >
       <StyledForm>
